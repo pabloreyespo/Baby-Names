@@ -128,7 +128,7 @@ def build(d: Data, nombre: str, anio: int, comuna_nac: dict, comuna_act: dict) -
             body,
             big=stats.pct(100 * total["share_f"], 0),
             big_label="De las inscripciones son de mujeres",
-            chart=charts.multiline(gender_df, "inscripciones", "sexo", "Inscripciones por año", anio=anio, label=f"Tú, {anio}"),
+            chart=charts.multiline(gender_df, "inscripciones", "sexo", "Inscripciones por año", anio=anio, label=f"Tú, {anio}", domain=["mujeres", "hombres"]),
         )
     )
 

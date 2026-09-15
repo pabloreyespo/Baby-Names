@@ -160,9 +160,9 @@ def test_suggest_and_random(client, d):
         assert client.get("/api/names/random").json()["nombre"] in top100
 
 
-@pytest.mark.parametrize("slug,n_charts,n_small", [("k-w-y", 3, 6), ("vecinos", 3, 12), ("unisex", 5, 0)])
+@pytest.mark.parametrize("slug,n_charts,n_small", [("k-w-y", 3, 6), ("vecinos", 3, 12), ("unisex", 5, 0), ("letras", 3, 0)])
 def test_discoveries(client, slug, n_charts, n_small):
-    assert {x["slug"] for x in client.get("/api/discoveries").json()} == {"k-w-y", "vecinos", "unisex"}
+    assert {x["slug"] for x in client.get("/api/discoveries").json()} == {"k-w-y", "vecinos", "unisex", "letras"}
     r = client.get(f"/api/discoveries/{slug}")
     assert r.status_code == 200, r.text
     secs = r.json()["sections"]

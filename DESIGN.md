@@ -15,6 +15,15 @@ A personal data story in the spirit of Spotify Wrapped, Apple product pages, and
 | `--ink-soft` | `#5C544D` | body text, labels, axis text, third series |
 | `--rule` | `#D9CDB9` | hairlines, gridlines |
 
+Chart support colors, only for series that must be told apart (never for UI):
+
+| token | hex | role |
+| --- | --- | --- |
+| `--teal` | `#1F6F78` | second chart series, hombres in sex splits |
+| `--ochre` | `#B0761F` | third chart series |
+| `--blue` | `#3C5A8A` | fourth chart series |
+| `--plum` | `#7A4E8C` | fifth chart series |
+
 Headlines are ink, body is ink-soft, burgundy is reserved for the number and for interaction. No pure white, no shadows; depth comes from cream-deep cards with 24px radius and a 4px burgundy focus ring on inputs.
 
 ## Type
@@ -54,4 +63,4 @@ Never behind chart data.
 
 ## Charts
 
-One Altair theme in `api/app/charts.py`: cream background, no view stroke, dashed hairline gridlines at low opacity, Switzer 11px labels in ink-soft, no ticks, legend on top. Series: burgundy, burgundy-soft, ink-soft; sex splits use burgundy for mujeres and ink-soft for hombres. The visitor's birth year is a dashed burgundy-deep rule with a label. Width is container, heights 160 to 340. Charts sit inside cream-deep cards so their cream background reads as an inset panel.
+One Altair theme in `api/app/charts.py`: cream background, no view stroke, dashed hairline gridlines at low opacity, Switzer 11px labels in ink-soft, no ticks, legend on top. Series: burgundy, teal, ochre, blue, plum, ink-soft, in that order, so categories differ by hue and not only by lightness (burgundy against burgundy-soft was unreadable for color blindness). Sex splits use burgundy for mujeres and teal for hombres. Single series charts with a highlight keep burgundy-deep against burgundy-soft, where the contrast is deliberate. The visitor's birth year is a dashed burgundy-deep rule with a label. Width is container, heights 160 to 340. Charts sit inside cream-deep cards so their cream background reads as an inset panel.
