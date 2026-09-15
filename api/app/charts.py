@@ -215,3 +215,36 @@ def cloud(df: pl.DataFrame, text: str, value: str, highlight: str | None = None,
         )
     )
     return _finish(chart, height)  # container width; x/y keep the layout domain so the cloud stretches with the card
+
+
+RAMP_STOPS = [BURGUNDY_DEEP, BURGUNDY, BURGUNDY_SOFT, OCHRE, TEAL, BLUE]
+
+
+def ramp(n: int, stops: list[str] | None = None) -> list[str]:
+    """n hex colors along the palette stops. The sweep crosses hues, not just tones, so many
+    stacked categories stay separable instead of reading as one burgundy gradient."""
+    s = stops or RAMP_STOPS
+    rgb = [[int(c[i : i + 2], 16) for i in (1, 3, 5)] for c in s]
+    out = []
+    for k in range(n):
+        p = k / max(n - 1, 1) * (len(rgb) - 1)
+        i = min(int(p), len(rgb) - 2)
+        a, b, t = rgb[i], rgb[i + 1], p - i
+        out.append("#" + "".join(f"{round(x + (y - x) * t):02x}" for x, y in zip(a, b)))
+    return out
+
+
+def stream(df: pl.DataFrame, y: str, color: str, y_title: str = "", domain: list[str] | None = None, range_: list[str] | None = None, order: str | None = None, height: int = 340) -> dict:
+    """Stacked area centered on the baseline (streamgraph) over anio."""
+    chart = (
+        alt.Chart(df)
+        .mark_area(interpolate="monotone")
+        .encode(
+            x=alt.X("anio:Q", title=None, axis=alt.Axis(format="d", tickCount=6)),
+            y=alt.Y(f"{y}:Q", stack="center", title=y_title, axis=None),
+            color=alt.Color(f"{color}:N", scale=alt.Scale(domain=domain, range=range_) if domain else alt.Undefined, legend=alt.Legend(symbolType="square")),
+            order=alt.Order(f"{order}:Q" if order else f"{color}:N"),
+            tooltip=[alt.Tooltip("anio:Q", title="Año", format="d"), alt.Tooltip(f"{color}:N", title=""), alt.Tooltip(f"{y}:Q", title=y_title, format=".2f")],
+        )
+    )
+    return _finish(chart, height)
