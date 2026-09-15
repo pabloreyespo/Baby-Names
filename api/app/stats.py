@@ -148,7 +148,6 @@ def cohort(d: Data, nombre: str, anio: int, radius: int = 5) -> dict:
     return {"lo": lo, "hi": hi, "inscritos": mine, "share": mine / total if total else 0.0, "ranking": rank, "n_nombres": w.height}
 
 
-
 def age_band(anio: int, census_year: int = 2024) -> str:
     age = census_year - anio
     return "pob_0_14" if age <= 14 else "pob_15_64" if age <= 64 else "pob_65_mas"
