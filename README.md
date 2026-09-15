@@ -1,6 +1,6 @@
 # Nombres de Chile
 
-Tu nombre en cifras. Ingresas tu primer nombre, año de nacimiento, comuna donde naciste y comuna donde vives, y el sitio arma una historia de diez capítulos con estadísticas del Registro Civil (1920-2021) y del Censo 2024, más una tarjeta para compartir. Una sección de descubrimientos publica análisis sobre el conjunto completo de nombres.
+Tu nombre en cifras. Ingresas tu primer nombre, año de nacimiento, comuna donde naciste y comuna donde vives, y el sitio arma una historia de diez capítulos con estadísticas del Registro Civil (1920-2021) y de los Censos 2017 y 2024, más una tarjeta para compartir. Una sección de descubrimientos publica análisis sobre el conjunto completo de nombres.
 
 ## Correr
 

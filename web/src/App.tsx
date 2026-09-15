@@ -18,7 +18,7 @@ export default function App() {
         <Outlet />
       </main>
       <footer className="foot">
-        <span>Registro Civil 1920-2021 · Censo 2024, INE</span>
+        <span>Registro Civil 1920-2021 · Censos 2017 y 2024, INE</span>
         <span>Las cifras por comuna son estimaciones.</span>
       </footer>
     </>

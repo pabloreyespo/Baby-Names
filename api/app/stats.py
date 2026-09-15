@@ -148,15 +148,6 @@ def cohort(d: Data, nombre: str, anio: int, radius: int = 5) -> dict:
     return {"lo": lo, "hi": hi, "inscritos": mine, "share": mine / total if total else 0.0, "ranking": rank, "n_nombres": w.height}
 
 
-def namesakes(share_living: float, poblacion: int) -> int:
-    """Estimated people alive with the name in a comuna.
-
-    Names data has no geography, so this applies the national share of living
-    people with the name to the comuna's census population. Always labeled an
-    estimate in the UI.
-    """
-    return int(round(share_living * poblacion))
-
 
 def age_band(anio: int, census_year: int = 2024) -> str:
     age = census_year - anio
