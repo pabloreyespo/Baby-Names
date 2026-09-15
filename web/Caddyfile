@@ -1,0 +1,16 @@
+{$SITE_HOST}
+
+root * /srv
+encode gzip
+
+handle /api/* {
+	reverse_proxy api:8000
+}
+
+handle {
+	try_files {path} /index.html
+	file_server
+}
+
+@static path *.js *.css *.woff *.woff2 *.webp
+header @static Cache-Control "public, max-age=2592000"
