@@ -1,0 +1,26 @@
+# Production: Caddy serves the built web and terminates HTTPS (Let's Encrypt) for SITE_HOST.
+# docker compose -f compose.prod.yaml up -d --build
+services:
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    restart: unless-stopped
+    expose:
+      - "8000"
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    environment:
+      SITE_HOST: ${SITE_HOST:?set SITE_HOST, e.g. 22b0f9c1.sslip.io}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data
+    depends_on:
+      - api
+volumes:
+  caddy_data:

@@ -1,0 +1,13 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    expose:
+      - "8000"
+  web:
+    build: ./web
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
