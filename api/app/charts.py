@@ -15,7 +15,13 @@ BURGUNDY_SOFT = "#A8626C"
 INK_SOFT = "#5C544D"
 RULE = "#D9CDB9"
 FONT = "Switzer, Helvetica Neue, Arial, sans-serif"
-SERIES = [BURGUNDY, BURGUNDY_SOFT, INK_SOFT]
+# Support colors for multi series charts. Burgundy leads; the rest separate by hue, not only by
+# lightness, so the series stay legible for red-green color blindness on the cream ground.
+TEAL = "#1F6F78"
+OCHRE = "#B0761F"
+BLUE = "#3C5A8A"
+PLUM = "#7A4E8C"
+SERIES = [BURGUNDY, TEAL, OCHRE, BLUE, PLUM, INK_SOFT]
 
 
 @alt.theme.register("nombres", enable=True)
@@ -120,7 +126,7 @@ def stacked_bars(df: pl.DataFrame, x: str, y: str, color: str, highlight: str | 
         .encode(
             y=alt.Y(f"{y}:N", sort=alt.EncodingSortField(field=x, op="sum", order="descending"), title=None, axis=alt.Axis(labelLimit=160)),
             x=alt.X(f"{x}:Q", title=x_title, axis=alt.Axis(format="~s")),
-            color=alt.Color(f"{color}:N", scale=alt.Scale(domain=["mujeres", "hombres"], range=[BURGUNDY, INK_SOFT])),
+            color=alt.Color(f"{color}:N", scale=alt.Scale(domain=["mujeres", "hombres"], range=[BURGUNDY, TEAL])),
             opacity=alt.condition(alt.datum[y] == highlight, alt.value(1), alt.value(0.55)),
             tooltip=[alt.Tooltip(f"{y}:N", title=""), alt.Tooltip(f"{color}:N", title=""), alt.Tooltip(f"{x}:Q", title=x_title, format=",.0f")],
         )
@@ -147,7 +153,7 @@ def diverging(df: pl.DataFrame, y: str, x: str, x_title: str = "", height: int =
     base = alt.Chart(df).encode(y=alt.Y(f"{y}:N", sort=None, title=None, axis=alt.Axis(labelLimit=160)))
     bar = base.mark_bar().encode(
         x=alt.X(f"{x}:Q", title=x_title, scale=alt.Scale(domain=[0, 100])),
-        color=alt.condition(alt.datum[x] >= 50, alt.value(BURGUNDY), alt.value(INK_SOFT)),
+        color=alt.condition(alt.datum[x] >= 50, alt.value(BURGUNDY), alt.value(TEAL)),
         tooltip=[alt.Tooltip(f"{y}:N", title=""), alt.Tooltip(f"{x}:Q", title=x_title, format=".1f")],
     )
     mid = alt.Chart(pl.DataFrame({"x": [50]})).mark_rule(strokeDash=[4, 4]).encode(x="x:Q")
