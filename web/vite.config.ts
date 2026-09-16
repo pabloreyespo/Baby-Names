@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    proxy: { '/api': 'http://localhost:8000' },
+    proxy: { '/api': process.env.API_URL ?? 'http://localhost:8000' },
+    watch: process.env.VITE_POLL ? { usePolling: true } : undefined,
   },
 })

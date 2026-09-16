@@ -31,7 +31,8 @@ def norm_key(s: str) -> str:
 class Data:
     names: pl.DataFrame  # anio, nombre, sexo, inscritos, proporcion, vivos
     freq: pl.DataFrame  # nombre, inscritos, vivos, mujeres, hombres, ranking, ranking_vivos
-    comunas: pl.DataFrame  # cut, region, provincia, comuna, poblacion, hombres, mujeres, pob_*, edad_promedio, key
+    comunas: pl.DataFrame  # cut, region, provincia, comuna, poblacion, hombres, mujeres, pob_*, edad_promedio, creada, origen, key
+    poblacion: pl.DataFrame  # annual series: anio, cut, poblacion, fuente (cut whose series was used, the parent before a split)
     name_index: dict[str, list[str]]  # normalized key -> canonical spellings, most frequent first
     pairs: pl.DataFrame  # precomputed one-edit spelling pairs: nombre, inscritos, nombre_b, inscritos_b
 
@@ -50,6 +51,9 @@ class Data:
     def comuna(self, name: str) -> dict | None:
         m = self.comunas.filter(pl.col("key") == norm_key(name))
         return None if m.is_empty() else m.row(0, named=True)
+
+    def comuna_by_cut(self, cut: int) -> dict:
+        return self.comunas.filter(pl.col("cut") == cut).row(0, named=True)
 
 
 @lru_cache(maxsize=1)
@@ -91,4 +95,5 @@ def load() -> Data:
     for n in freq["nombre"]:  # already most frequent first
         index.setdefault(norm_key(n), []).append(n)
 
-    return Data(names=df, freq=freq, comunas=comunas, name_index=index, pairs=pairs)
+    poblacion = pl.read_parquet(PROCESSED / "poblacion.parquet")
+    return Data(names=df, freq=freq, comunas=comunas, name_index=index, pairs=pairs, poblacion=poblacion)

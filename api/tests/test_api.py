@@ -3,7 +3,7 @@ import polars as pl
 import pytest
 from fastapi.testclient import TestClient
 
-from app import stats
+from app import stats, story
 from app.data import load
 from app.main import app
 
@@ -54,10 +54,20 @@ def test_year_in_city(d):
     assert 0 < yc["born_city"] < yc["born_cl"]
     assert 0 < yc["alive_city"] <= yc["alive_cl"] <= yc["born_cl"]
     assert yc["band"] == "de 15 a 64 años" and stats.age_band(1950) == "pob_65_mas" and stats.age_band(2015) == "pob_0_14"
-    assert yc["censo_nac"] == 2017 and yc["pob_nac"] == 221364 and yc["born_city_iv"][0] >= 1
-    assert stats.year_in_city(d, series, 2021, arica, stgo)["censo_nac"] == 2024
-    assert d.comunas["poblacion_2017"].sum() == 17_574_003
+    assert yc["fuente_nac"] == arica["cut"] and 40_000 < yc["pob_nac"] < 100_000 and yc["born_city_iv"][0] >= 1
+    assert abs(sum(stats.poblacion_en(d, c, 1960)["share"] for c in d.comunas["cut"] if stats.poblacion_en(d, c, 1960)["fuente"] == c) - 1) < 1e-9
     assert abs(sum(stats.city_share(d, c) for c in d.comunas.iter_rows(named=True)) - 1) < 1e-9
+
+
+def test_poblacion_before_split_uses_parent(d):
+    hospicio, iquique = d.comuna("Alto Hospicio"), d.comuna("Iquique")
+    assert hospicio["creada"] == 2004 and hospicio["origen"] == iquique["cut"]
+    before, after = stats.poblacion_en(d, hospicio["cut"], 1990), stats.poblacion_en(d, hospicio["cut"], 2010)
+    assert before["fuente"] == iquique["cut"] and before == stats.poblacion_en(d, iquique["cut"], 1990)
+    assert after["fuente"] == hospicio["cut"] and after["poblacion"] < before["poblacion"]
+    assert stats.poblacion_en(d, d.comuna("O'Higgins")["cut"], 1960)["fuente"] == d.comuna("Chile Chico")["cut"]  # two hops
+    body = " ".join(story.build(d, "Ana", 1990, hospicio, d.comuna("Santiago"))["slides"][6]["body"])
+    assert "pertenecía a Iquique" in body and "Se separó en 2004" in body
 
 
 def test_neighbors_and_family(d):
@@ -160,9 +170,9 @@ def test_suggest_and_random(client, d):
         assert client.get("/api/names/random").json()["nombre"] in top100
 
 
-@pytest.mark.parametrize("slug,n_charts,n_small", [("k-w-y", 3, 6), ("vecinos", 3, 12), ("unisex", 5, 0), ("letras", 3, 0)])
+@pytest.mark.parametrize("slug,n_charts,n_small", [("k-w-y", 3, 6), ("vecinos", 3, 12), ("unisex", 5, 0), ("letras", 3, 0), ("biblicos", 3, 2), ("beatles", 2, 4), ("modas", 4, 2)])
 def test_discoveries(client, slug, n_charts, n_small):
-    assert {x["slug"] for x in client.get("/api/discoveries").json()} == {"k-w-y", "vecinos", "unisex", "letras"}
+    assert {x["slug"] for x in client.get("/api/discoveries").json()} == {"k-w-y", "vecinos", "unisex", "letras", "biblicos", "beatles", "modas"}
     r = client.get(f"/api/discoveries/{slug}")
     assert r.status_code == 200, r.text
     secs = r.json()["sections"]

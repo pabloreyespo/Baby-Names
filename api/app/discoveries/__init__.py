@@ -10,9 +10,9 @@ from __future__ import annotations
 
 from types import ModuleType
 
-from . import kwy, letras, unisex, vecinos
+from . import beatles, biblicos, kwy, letras, modas, unisex, vecinos
 
-MODULES: list[ModuleType] = [vecinos, unisex, kwy, letras]
+MODULES: list[ModuleType] = [modas, beatles, biblicos, vecinos, unisex, kwy, letras]
 
 
 def listing() -> list[dict]:

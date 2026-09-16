@@ -202,13 +202,20 @@ def build(d: Data, nombre: str, anio: int, comuna_nac: dict, comuna_act: dict) -
 
     # 7. ciudad natal
     iv_nac = stats.interval(total["vivos"], stats.city_share(d, comuna_nac))
+    share_line = f"{stats.fmt(yc['pob_nac'])} habitantes en {anio}, el {stats.pct(100 * yc['share_nac'], 2)} del país."
+    if yc["fuente_nac"] != comuna_nac["cut"]:  # born before the split: the registry only knew the parent comuna
+        madre = d.comuna_by_cut(yc["fuente_nac"])["comuna"]
+        origen_line = f"En {anio} {comuna_nac['comuna']} todavía no era comuna: pertenecía a {madre}, que tenía {share_line} Se separó en {comuna_nac['creada']}. "
+    elif comuna_nac["creada"] and anio < comuna_nac["creada"]:
+        madre = d.comuna_by_cut(comuna_nac["origen"])["comuna"]
+        origen_line = f"El territorio de {comuna_nac['comuna']} tenía {share_line} Entonces era parte de {madre}; se separó en {comuna_nac['creada']}. "
+    else:
+        origen_line = f"{comuna_nac['comuna']} ({comuna_nac['region']}) tenía {share_line} "
     body = [
-        f"{comuna_nac['comuna']} ({comuna_nac['region']}) tenía {stats.fmt(yc['pob_nac'])} habitantes según el Censo {yc['censo_nac']}, el más cercano a tu año de nacimiento, "
-        f"el {stats.pct(100 * yc['share_nac'], 2)} del país. "
-        f"En {anio} se inscribieron {stats.fmt(yc['born_cl'])} {nombre} en todo Chile; si se repartieron como la población, "
+        origen_line + f"En {anio} se inscribieron {stats.fmt(yc['born_cl'])} {nombre} en todo Chile; si se repartieron como la población, "
         + f"{stats.rango(*yc['born_city_iv'])} {nombre} nacieron en {comuna_nac['comuna']} ese mismo año, contándote a ti.",
         f"Sumando todas las edades, hoy vivirían en {comuna_nac['comuna']} {stats.rango(*iv_nac)} personas llamadas {nombre}. "
-        "El registro de nombres no tiene geografía, así que ambas cifras son estimaciones con un intervalo del 90%, y el mínimo siempre es 1: tú.",
+        "El registro de nombres no tiene geografía y la población anual se interpola entre censos, así que ambas cifras son estimaciones con un intervalo del 90%, y el mínimo siempre es 1: tú.",
     ]
     slides.append(
         slide(

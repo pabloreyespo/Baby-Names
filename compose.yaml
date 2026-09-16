@@ -1,3 +1,5 @@
+# Development: both services hot reload from the mounted source.
+# Polling is on because Windows bind mounts do not deliver inotify events.
 services:
   api:
     build:
@@ -5,9 +7,23 @@ services:
       dockerfile: api/Dockerfile
     expose:
       - "8000"
+    command: uv run --no-sync uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      WATCHFILES_FORCE_POLLING: "true"
+    volumes:
+      - ./api/app:/app/app
   web:
-    build: ./web
+    build:
+      context: ./web
+      target: deps
+    command: npm run dev -- --host
+    environment:
+      API_URL: http://api:8000
+      VITE_POLL: "true"
+    volumes:
+      - ./web:/app
+      - /app/node_modules
     ports:
-      - "8080:80"
+      - "8080:5173"
     depends_on:
       - api

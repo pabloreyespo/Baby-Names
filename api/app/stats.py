@@ -153,10 +153,13 @@ def age_band(anio: int, census_year: int = 2024) -> str:
     return "pob_0_14" if age <= 14 else "pob_15_64" if age <= 64 else "pob_65_mas"
 
 
-def census_for(anio: int) -> tuple[int, str]:
-    """Census closest to a birth year: 2017 up to 2020, 2024 after. Only these two have comuna
-    level data downloadable from the INE; 2002 and 1992 live in REDATAM, which is interactive."""
-    return (2017, "poblacion_2017") if anio <= 2020 else (2024, "poblacion")
+def poblacion_en(d: Data, cut: int, anio: int) -> dict:
+    """Comuna population in a given year (Zenodo annual series) and its share of the country.
+    Before a split the parent's figure is used, so `fuente` is the cut the number belongs to."""
+    year = d.poblacion.filter(pl.col("anio") == anio)
+    row = year.filter(pl.col("cut") == cut).row(0, named=True)
+    total = year.filter(pl.col("cut") == pl.col("fuente"))["poblacion"].sum()  # own series only, parents are not double counted
+    return {"poblacion": int(row["poblacion"]), "fuente": int(row["fuente"]), "share": row["poblacion"] / total if total else 0.0}
 
 
 def city_share(d: Data, comuna: dict, col: str = "poblacion") -> float:
@@ -177,16 +180,16 @@ def year_in_city(d: Data, series: pl.DataFrame, anio: int, comuna_nac: dict, com
     row = series.filter(pl.col("anio") == anio).row(0, named=True)
     born_cl, alive_cl = int(row["inscritos"]), int(row["vivos"])
     band = age_band(anio)
-    censo, col = census_for(anio)
-    share_nac = city_share(d, comuna_nac, col)
+    pob = poblacion_en(d, comuna_nac["cut"], anio)
+    share_nac = pob["share"]
     share_act = city_share(d, comuna_act, band)
     return {
         "born_cl": born_cl,
         "born_city": int(round(born_cl * share_nac)),
         "born_city_iv": interval(born_cl, share_nac),
         "share_nac": share_nac,
-        "censo_nac": censo,
-        "pob_nac": int(comuna_nac[col]),
+        "pob_nac": pob["poblacion"],
+        "fuente_nac": pob["fuente"],
         "alive_cl": alive_cl,
         "alive_city": int(round(alive_cl * share_act)),
         "alive_city_iv": interval(alive_cl, share_act),
