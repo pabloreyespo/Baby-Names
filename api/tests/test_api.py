@@ -203,6 +203,7 @@ def test_interval_and_cloud():
     assert len(pts) == 3 and pts[0]["tamano"] > pts[1]["tamano"]
     boxes = charts._cloud_layout([("aaaa", 40), ("bbbb", 40), ("cc", 20)], 600, 300)
     for i, a in enumerate(boxes):
+        assert a["y1"] - a["y0"] >= 1.25 * a["size"] and a["x1"] - a["x0"] >= 0.62 * a["size"] * len(a["text"])  # padded, words do not touch
         for b in boxes[i + 1 :]:
             assert not (a["x0"] < b["x1"] and b["x0"] < a["x1"] and a["y0"] < b["y1"] and b["y0"] < a["y1"])
 
@@ -215,3 +216,10 @@ def test_rank_by_sex(d):
     rk = r["window"]["ranking"].to_list()
     assert rk == sorted(rk) and rk[0] < r["ranking"] < rk[-1]
     assert stats.top_by_sex(d, 2001, "M").height == 10 and stats.rank_by_sex(d, "Teobalda", 2021) is None
+
+
+def test_cohort_living_share(d):
+    m, j = stats.cohort(d, "María", 1950), stats.cohort(d, "Juan", 1950)
+    assert 0 < m["vivos"] < m["inscritos"] and m["n_vivos"] <= m["n_nombres"]
+    assert m["share_vivos"] > m["share"] and j["share_vivos"] < j["share"]  # the life tables favour women
+    assert m["ranking_vivos"] >= 1 and stats.cohort(d, "Teobalda", 2021)["share_vivos"] >= 0

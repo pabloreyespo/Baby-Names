@@ -14,7 +14,7 @@ from .. import charts, stats
 from ..data import YEAR_MAX, Data
 
 SLUG = "modas"
-TITLE = "Nombres que estallaron: un detector de modas"
+TITLE = "Nombres que despegaron: un detector de modas"
 DATE = "2026-09-16"
 SUMMARY = "Sin lista previa de nombres famosos: una regla busca años en que un nombre se multiplica sobre su propio pasado, y deja al descubierto teleseries, mundiales y canciones."
 
@@ -96,8 +96,8 @@ def build(d: Data) -> list[dict]:
     q_df, q_ord = _series(quedaron, d)
 
     anios = pl.DataFrame({"anio": pl.int_range(FIRST, YEAR_MAX + 1, eager=True).cast(pl.Int32)})
-    por_anio = anios.join(b.group_by("anio").agg(estallidos=pl.len()), on="anio", how="left").fill_null(0).sort("anio")
-    pico = por_anio.row(por_anio["estallidos"].arg_max(), named=True)
+    por_anio = anios.join(b.group_by("anio").agg(saltos=pl.len()), on="anio", how="left").fill_null(0).sort("anio")
+    pico = por_anio.row(por_anio["saltos"].arg_max(), named=True)
 
     recientes = b.filter(pl.col("anio") >= 2013).sort("veces", descending=True)
     mayor = recientes.sort("salto", descending=True).row(0, named=True)
@@ -107,14 +107,14 @@ def build(d: Data) -> list[dict]:
         {
             "heading": None,
             "body": [
-                "Casi todos los nombres suben y bajan despacio. Unos pocos estallan: un año pesan lo de siempre y al siguiente se multiplican. "
+                "Casi todos los nombres suben y bajan despacio. Unos pocos despegan: un año pesan lo de siempre y al siguiente se multiplican. "
                 "Detrás de esos saltos suele haber una teleserie, una canción, una película o un mundial.",
                 "Este artículo no parte de una lista de nombres famosos. Parte de una regla aplicada a todo el registro. "
                 f"Las grafías se agrupan en familias fonéticas, de modo que Nataly, Nathaly y Natalie cuentan como un solo nombre. Para cada familia con al menos {stats.fmt(MIN_TOTAL)} inscripciones "
                 f"en el siglo se calcula su porcentaje de las inscripciones de cada año y se compara con el promedio de los {WINDOW} años anteriores. "
-                f"Queda marcado como estallido el año que supera {stats.dec(RATIO, 0)} veces ese promedio con al menos {MIN_YEAR} inscripciones. De cada familia se conserva un solo estallido, "
+                f"Queda marcado como salto el año que supera {stats.dec(RATIO, 0)} veces ese promedio con al menos {MIN_YEAR} inscripciones. De cada familia se conserva un solo salto, "
                 "el mayor medido en puntos porcentuales ganados sobre su propia base.",
-                f"El detector encuentra {stats.fmt(b.height)} familias con al menos un estallido entre {FIRST} y {YEAR_MAX}. Ningún nombre fue elegido a mano.",
+                f"El detector encuentra {stats.fmt(b.height)} familias con al menos un salto entre {FIRST} y {YEAR_MAX}. Ningún nombre fue elegido a mano.",
             ],
             "chart": None,
         },
@@ -125,21 +125,21 @@ def build(d: Data) -> list[dict]:
                 f"Encabeza {top['nombre'][0]} en {top['anio'][0]}, con {stats.pct(float(top['share'][0]), 2)} de las inscripciones del año contra {stats.pct(float(top['base'][0]), 3)} del quinquenio previo."
             ],
             "chart": charts.bars(top, "salto", "nombre", x_title="Puntos porcentuales sobre su base", height=400),
-            "items": {"title": "Cifras de cada estallido", "rows": _rows(top)},
+            "items": {"title": "Cifras de cada salto", "rows": _rows(top)},
         },
         {
-            "heading": "La forma del estallido",
+            "heading": "La forma del despegue",
             "body": [
                 "Las seis familias con el salto más grande, como porcentaje de las inscripciones de cada año desde 1950. "
                 "La subida ocupa dos o tres años, nunca una década. Lo que viene después distingue dos destinos: caída casi tan rápida como la subida, "
-                "o un ascenso que sigue mucho más allá del año del estallido."
+                "o un ascenso que sigue mucho más allá del año del salto."
             ],
             "chart": charts.multiline(seis, "share", "nombre", "% de inscripciones del año", y_format=".1f", height=340, domain=orden),
         },
         {
             "heading": "Fuegos artificiales y nombres que se quedaron",
             "body": [
-                "Un estallido no garantiza permanencia. Comparando el peso del año del salto con el de diez años después se separan dos destinos: "
+                "Un despegue no garantiza permanencia. Comparando el peso del año del salto con el de diez años después se separan dos destinos: "
                 f"los que caen bajo un cuarto de su punto máximo y los que diez años más tarde valen lo mismo o más. "
                 f"De las {stats.fmt(cerrados.height)} familias con diez años de historia posterior, {stats.fmt(cerrados.filter(pl.col('resto') < FLASH).height)} resultaron fugaces y "
                 f"{stats.fmt(cerrados.filter(pl.col('resto') >= DURABLE).height)} siguieron creciendo."
@@ -152,22 +152,22 @@ def build(d: Data) -> list[dict]:
             "items": {
                 "title": "Qué pasó diez años después",
                 "rows": [
-                    {"label": f"{r['nombre']} ({r['anio']})", "value": f"{stats.pct(r['share'], 2)} en el año del estallido, {stats.pct(r['despues'], 2)} diez años después"}
+                    {"label": f"{r['nombre']} ({r['anio']})", "value": f"{stats.pct(r['share'], 2)} en el año del salto, {stats.pct(r['despues'], 2)} diez años después"}
                     for r in pl.concat([fugaces, quedaron]).iter_rows(named=True)
                 ],
             },
         },
         {
-            "heading": "Cuándo estalla un nombre",
+            "heading": "Cuándo despega un nombre",
             "body": [
-                "Cantidad de familias que registran su estallido en cada año. La línea es plana hasta los años sesenta y se dispara con la televisión: "
-                f"el máximo está en {pico['anio']}, con {pico['estallidos']} nombres estallando a la vez.",
+                "Cantidad de familias que registran su salto en cada año. La línea es plana hasta los años sesenta y se dispara con la televisión: "
+                f"el máximo está en {pico['anio']}, con {pico['saltos']} nombres despegando a la vez.",
                 "La concentración importa más que el total: cuando varios nombres poco frecuentes despegan el mismo año, el origen compartido suele ser una sola emisión.",
             ],
-            "chart": charts.line(por_anio, "estallidos", "Familias que estallan ese año", height=280),
+            "chart": charts.line(por_anio, "saltos", "Familias que despegan ese año", height=280),
         },
         {
-            "heading": "Los estallidos recientes",
+            "heading": "Los despegues recientes",
             "body": [
                 f"Las seis familias que más se multiplicaron sobre su base entre 2013 y {YEAR_MAX}, como porcentaje de las inscripciones del año desde 2000. "
                 "El bloque turco es el más nítido del período: Elif en 2016, Emir en 2017, Melek en 2018 y Naim en 2021 eran nombres casi ausentes del registro chileno "
@@ -176,7 +176,7 @@ def build(d: Data) -> list[dict]:
                 "Es también el caso más ambiguo, porque esa familia fonética junta el mapuche Ailén con el turco Aylin y el detector no puede separarlos.",
             ],
             "chart": charts.multiline(r_df, "share", "nombre", "% de inscripciones del año", y_format=".2f", height=320, domain=r_ord),
-            "items": {"title": "Estallidos desde 2013", "rows": _rows(recientes)},
+            "items": {"title": "Saltos desde 2013", "rows": _rows(recientes)},
         },
         {
             "heading": "Lectura",
@@ -186,7 +186,7 @@ def build(d: Data) -> list[dict]:
                 "los años de una serie y de un disco; Evolet en 2009, al año siguiente de la película; Miley en 2010, en plena Hannah Montana; "
                 "Melek, Emir y Elif entre 2016 y 2018, con las teleseries turcas al aire.",
                 "Ninguna de esas atribuciones sale de los datos: el registro civil solo entrega el salto y su fecha, y la coincidencia queda a cargo de quien lee. "
-                "Del registro sí sale el patrón, y es constante: el estallido se arma en dos o tres años, arrastra una decena de grafías nuevas "
+                "Del registro sí sale el patrón, y es constante: el despegue se arma en dos o tres años, arrastra una decena de grafías nuevas "
                 "y en la mayoría de los casos se apaga antes de una década, dejando una generación fechada por su nombre.",
             ],
             "chart": None,

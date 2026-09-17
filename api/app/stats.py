@@ -32,6 +32,7 @@ def by_name(frame: pl.DataFrame) -> pl.DataFrame:
         frame.group_by("nombre")
         .agg(
             inscritos=pl.col("inscritos").sum(),
+            vivos=pl.col("vivos").sum(),
             mujeres=pl.col("inscritos").filter(pl.col("sexo") == "F").sum(),
             hombres=pl.col("inscritos").filter(pl.col("sexo") == "M").sum(),
         )
@@ -141,11 +142,23 @@ def gender_balance(share_f: float) -> str:
 def cohort(d: Data, nombre: str, anio: int, radius: int = 5) -> dict:
     lo, hi = max(YEAR_MIN, anio - radius), min(YEAR_MAX, anio + radius)
     w = by_name(d.names.filter(pl.col("anio").is_between(lo, hi)))
-    total = int(w["inscritos"].sum())
+    total, total_vivos = int(w["inscritos"].sum()), int(w["vivos"].sum())
     row = w.filter(pl.col("nombre") == nombre)
     mine = int(row["inscritos"][0]) if not row.is_empty() else 0
+    vivos = int(row["vivos"][0]) if not row.is_empty() else 0
     rank = int((w["inscritos"] > mine).sum() + 1) if mine else None
-    return {"lo": lo, "hi": hi, "inscritos": mine, "share": mine / total if total else 0.0, "ranking": rank, "n_nombres": w.height}
+    return {
+        "lo": lo,
+        "hi": hi,
+        "inscritos": mine,
+        "share": mine / total if total else 0.0,
+        "ranking": rank,
+        "vivos": vivos,
+        "share_vivos": vivos / total_vivos if total_vivos else 0.0,
+        "ranking_vivos": int((w["vivos"] > vivos).sum() + 1) if vivos else None,
+        "n_vivos": int((w["vivos"] > 0).sum()),
+        "n_nombres": w.height,
+    }
 
 
 def age_band(anio: int, census_year: int = 2024) -> str:

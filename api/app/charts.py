@@ -168,7 +168,7 @@ def _cloud_layout(words: list[tuple[str, float]], width: int, height: int) -> li
     placed: list[dict] = []
     cx, cy = width / 2, height / 2
     for text, size in words:
-        w, h = 0.58 * size * len(text), 1.05 * size
+        w, h = 0.62 * size * len(text) + 0.5 * size, 1.3 * size  # half a character of air around each box and 1.3 of line height, so words do not touch
         t = 0.0
         while True:
             x, y = cx + 3.5 * t * math.cos(t), cy + 2.2 * t * math.sin(t)
@@ -190,7 +190,8 @@ def cloud(df: pl.DataFrame, text: str, value: str, highlight: str | None = None,
 
     rows = df.sort(value, descending=True).head(max_words)
     top = float(rows[value].max()) if rows.height else 1.0
-    words = [(str(r[text]), 12 + 44 * math.sqrt(r[value] / top)) for r in rows.iter_rows(named=True)]
+    s = min(width / 600, height / 320)  # small cards get small type, otherwise their words never fit and get dropped
+    words = [(str(r[text]), max((11 + 40 * math.sqrt(r[value] / top)) * s, 9.0)) for r in rows.iter_rows(named=True)]
     laid = _cloud_layout(words, width, height)
     values = {str(r[text]): int(r[value]) for r in rows.iter_rows(named=True)}
     pts = pl.DataFrame(

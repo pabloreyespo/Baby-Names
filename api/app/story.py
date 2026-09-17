@@ -273,8 +273,14 @@ def build(d: Data, nombre: str, anio: int, comuna_nac: dict, comuna_act: dict) -
             if coh["inscritos"]
             else "ninguna en esa década."
         ),
+        (
+            f"De esa generación siguen vivas unas {stats.fmt(coh['vivos'])} con tu nombre, el {stats.pct(100 * coh['share_vivos'], 2)} de los nacidos en esos años que quedan, "
+            f"puesto {stats.fmt(coh['ranking_vivos'])} de {stats.fmt(coh['n_vivos'])} nombres con portadores vivos."
+            if coh["vivos"]
+            else "Hoy no queda nadie de esa generación con tu nombre."
+        ),
         "En un curso de 30 personas de tu edad, "
-        + (f"habría {stats.dec(30 * coh['share'])} con tu nombre." if coh["share"] else "probablemente eras la única persona con tu nombre."),
+        + (f"habría {stats.dec(30 * coh['share_vivos'])} con tu nombre." if coh["share_vivos"] else "probablemente eras la única persona con tu nombre."),
     ]
     slides.append(
         slide(
@@ -282,8 +288,8 @@ def build(d: Data, nombre: str, anio: int, comuna_nac: dict, comuna_act: dict) -
             "Tu generación",
             f"Los nacidos entre {coh['lo']} y {coh['hi']}",
             body,
-            big=f"1 de {stats.fmt(1 / coh['share'])}" if coh["share"] else "Único",
-            big_label=f"Personas de tu generación se llaman {nombre}",
+            big=f"1 de {stats.fmt(1 / coh['share_vivos'])}" if coh["share_vivos"] else "Único",
+            big_label=f"Personas vivas de tu generación se llaman {nombre}",
         )
     )
 
